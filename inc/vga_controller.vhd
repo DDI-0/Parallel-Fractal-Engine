@@ -9,7 +9,7 @@ package vga_controller is
         back_porch:     natural;
     end record timing_data;
 
-    type polarity is ( active_low, active_high);
+    type polarity is (active_low, active_high);
 
     type vga_timing is record
         horizontal:     timing_data;
@@ -47,7 +47,7 @@ package vga_controller is
         -- Pixel clock @ 25.175 MHz
         horizontal => (
             back_porch    => 48,
-             active_pixel => 640,
+            active_pixel  => 640,
             front_porch   => 16,
             sync_width    => 96
         ),
@@ -100,6 +100,83 @@ package vga_controller is
     ) return std_logic;
 
 end package vga_controller;
+
+package body vga_controller is
+    type timing_select is (horizontal, vertical);
+
+    function timing_range (
+        vga_res:    in vga_timing;
+        timing:     in timing_select
+    ) return natural is
+        variable ret_data : timing_data;
+    begin 
+        if timing = horizontal then
+            ret_data := vga_res.horizontal;
+        else 
+            ret_data := vga_res.vertical;
+        end if;
+
+        return ret_data.back_porch + ret_data.active_pixel + ret_data.front_porch + ret_data.sync_width;
+    end function timing_range;
+
+    function do_sync (
+        point:      in coordinate;
+        vga_res:    in vga_timing;
+        timing:     in timing_select
+    ) return std_logic is
+        variable sync_data: timing_data;
+        variable coord:     natural;
+        variable ret:       std_logic;
+    begin 
+        if timing = horizontal then
+            sync_data := vga_res.horizontal;
+        else 
+            sync_data := vga_res.vertical;
+        end if;
+
+        if coord >= (sync_data.front_porchh + sync_data.active_pixel) and 
+           coord < (sync_data.active_pixel + sync_data.sync_width + sync_data.front_porch)
+            then if vga_res.sync_polarity = active_high then
+                ret := '1';
+            else 
+                ret := '0';
+            end if;
+        else 
+            if vga_res.sync_polarity = active_low then -- ?
+                ret := '0';
+            else 
+                ret := '1';
+            end if;
+        end if;
+        return ret;
+    end function do_sync;
+
+    function x_visible (
+        point:    in coordinate;
+        vga_res:  in vga_timing := vga_res_deafult
+    ) return boolean is
+    begin 
+        return point.x < vga_res.horizontal.active_pixel;
+    end function x_visible;
+
+    function y_visible (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_deafult
+    ) return boolean is
+    begin
+        return point.y < vga_res.vertical.active_pixel;
+    end function y_visible;
+
+    function point_visible (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return boolean is
+    begin 
+        return x_visible(point, vga_res) and y_visible(point, vga_res);
+    end function point_visible;
+
+
+
 
 
 
