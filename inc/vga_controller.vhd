@@ -61,4 +61,45 @@ package vga_controller is
       )
     );
 
+    constant vga_res_1920x1080:     vga_timing  := vga_res_data(0);
+    constant vga_res_640x480:       vga_timing  := vga_res_data(1);
+    constant vga_res_default:       vga_timing  := vga_res_640x480;
+
+    function x_visible (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return boolean;
+
+    function y_visible (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return boolean;
+
+    function point_visible (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return boolean;
+
+    function make_coordinate (
+        x,y:     in natural
+    ) return coordinate; 
+
+    function next_coordinate (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return coordinate;
+
+    function horizontal_sync (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return std_logic;
+
+    function vertical_sync (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return std_logic;
+
+end package vga_controller;
+
+
 
