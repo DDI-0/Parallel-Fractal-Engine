@@ -134,7 +134,7 @@ package body vga_controller is
             sync_data := vga_res.vertical;
         end if;
 
-        if coord >= (sync_data.front_porchh + sync_data.active_pixel) and 
+        if coord >= (sync_data.front_porch + sync_data.active_pixel) and 
            coord < (sync_data.active_pixel + sync_data.sync_width + sync_data.front_porch)
             then if vga_res.sync_polarity = active_high then
                 ret := '1';
@@ -153,7 +153,7 @@ package body vga_controller is
 
     function x_visible (
         point:    in coordinate;
-        vga_res:  in vga_timing := vga_res_deafult
+        vga_res:  in vga_timing := vga_res_default
     ) return boolean is
     begin 
         return point.x < vga_res.horizontal.active_pixel;
@@ -161,7 +161,7 @@ package body vga_controller is
 
     function y_visible (
         point:   in coordinate;
-        vga_res: in vga_timing := vga_res_deafult
+        vga_res: in vga_timing := vga_res_default
     ) return boolean is
     begin
         return point.y < vga_res.vertical.active_pixel;
@@ -174,6 +174,51 @@ package body vga_controller is
     begin 
         return x_visible(point, vga_res) and y_visible(point, vga_res);
     end function point_visible;
+
+    function make_coordinate(
+        x,y:     in natural
+    ) return coordinate is
+        variable ret: coordinate;
+    begin
+        ret.x := x;
+        ret.y := y;
+        return ret;
+    end function make_coordinate;
+
+    function next_coordinate (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return coordinate is
+        variable ret: coordinate;
+    begin ret.x := point.x + 1;
+          ret.y := point.y;
+          
+          if ret.x = timing_range(vga_res, horizontal) then
+              ret.x := 0;
+              ret.y := ret.y + 1;
+              if ret.y = timing_range(vga_res, vertical) then
+                  ret.y := 0;
+              end if;
+          end if;
+    end function next_coordinate;
+
+    function horizontal_sync (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return std_logic is
+    begin 
+      return do_sync(point, vga_res, horizontal);
+    end function horizontal_sync; 
+
+    function vertical_sync (
+        point:   in coordinate;
+        vga_res: in vga_timing := vga_res_default
+    ) return std_logic is
+    begin
+       return do_sync(point,vga_res,vertical);
+    end function vertical_sync;
+end package body vga_controller; 
+
 
 
 
