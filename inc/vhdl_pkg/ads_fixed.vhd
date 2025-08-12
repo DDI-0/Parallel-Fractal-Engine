@@ -12,61 +12,61 @@ package ads_fixed is
 
 
 	-- type definition for class signed fixed
-	type ads_sfixed is array(integer range msb downto -lsb) of std_logic;
+	type ads_fixed is array(integer range msb downto -lsb) of std_logic;
 
 	-- other constants
 	-- Quartus bug?
-	constant ads_zero: ads_sfixed := (others => '0');
-	constant ads_minimum_value: ads_sfixed :=
+	constant ads_zero: ads_fixed := (others => '0');
+	constant ads_minimum_value: ads_fixed :=
 				(msb => '1', others => '0');
-	constant ads_maximum_value: ads_sfixed :=
+	constant ads_maximum_value: ads_fixed :=
 				(msb => '0', others => '1');
 
 	-- functions
-	function to_ads_sfixed (
+	function to_ads_fixed (
 			arg:	in signed
-		) return ads_sfixed;
+		) return ads_fixed;
 
-	function to_ads_sfixed (
+	function to_ads_fixed (
 			arg:	in integer
-		) return ads_sfixed;
+		) return ads_fixed;
 
-	function to_ads_sfixed (
+	function to_ads_fixed (
 			arg:	in real
-		) return ads_sfixed;
+		) return ads_fixed;
 
 	function to_signed (
-			arg: in ads_sfixed
+			arg: in ads_fixed
 		) return signed;
 
 	function "+" (
-			l, r:	in ads_sfixed
-		) return ads_sfixed;
+			l, r:	in ads_fixed
+		) return ads_fixed;
 
 	function "-" (
-			l, r:	in ads_sfixed
-		) return ads_sfixed;
+			l, r:	in ads_fixed
+		) return ads_fixed;
 
 	function "-" (
-			r:		in ads_sfixed
-		) return ads_sfixed;
+			r:		in ads_fixed
+		) return ads_fixed;
 
 	function "*" (
-			l, r:	in ads_sfixed
-		) return ads_sfixed;
+			l, r:	in ads_fixed
+		) return ads_fixed;
 
 	function "/" (
-			l, r:	in ads_sfixed
-		) return ads_sfixed;
+			l, r:	in ads_fixed
+		) return ads_fixed;
 
 	function ">" (
-			l, r:	in ads_sfixed
+			l, r:	in ads_fixed
 		) return boolean;
 
 end package ads_fixed;
 
 package body ads_fixed is
-	constant ads_epsilon: ads_sfixed := (msb downto -lsb + 1 => '0') & "1";
+	constant ads_epsilon: ads_fixed := (msb downto -lsb + 1 => '0') & "1";
 
 	constant minimum_value: signed(ads_epsilon'length - 1 downto 0) := 
 				"1" & (ads_epsilon'length - 2 downto 0 => '0');
@@ -104,12 +104,12 @@ package body ads_fixed is
 		return '1';
 	end function unary_and;
 
-	-- take in a signed and make it into an ads_sfixed
-	function to_ads_sfixed (
+	-- take in a signed and make it into an ads_fixed
+	function to_ads_fixed (
 			arg:	in signed
-		) return ads_sfixed
+		) return ads_fixed
 	is
-		variable ret: ads_sfixed;
+		variable ret: ads_fixed;
 	begin
 		-- safety check
 		assert ret'length = arg'length
@@ -120,14 +120,14 @@ package body ads_fixed is
 			ret(i) := arg(i + lsb);
 		end loop;
 		return ret;
-	end function to_ads_sfixed;
+	end function to_ads_fixed;
 
-	-- take an integer and make it into an ads_sfixed
-	function to_ads_sfixed (
+	-- take an integer and make it into an ads_fixed
+	function to_ads_fixed (
 			arg:	in integer
-		) return ads_sfixed
+		) return ads_fixed
 	is
-		variable ret: ads_sfixed;
+		variable ret: ads_fixed;
 		variable in_val: integer := arg;
 		variable bit_value: std_logic := '0';
 	begin
@@ -153,22 +153,22 @@ package body ads_fixed is
 		end loop;
 
 		return ret;
-	end function to_ads_sfixed;
+	end function to_ads_fixed;
 
-	-- take a real and make it into an ads_sfixed
-	function to_ads_sfixed (
+	-- take a real and make it into an ads_fixed
+	function to_ads_fixed (
 			arg: in real
-		) return ads_sfixed
+		) return ads_fixed
 	is
 		variable partial_result: real;
-		variable ret: ads_sfixed;
+		variable ret: ads_fixed;
 	begin
 		if (arg >= 2.0 ** msb) then
-			report "to_ads_sfixed(real) overflow, saturating"
+			report "to_ads_fixed(real) overflow, saturating"
 					severity warning;
 			return ads_maximum_value;
 		elsif (arg < -(2.00 ** msb)) then
-			report "to_ads_sfixed(real) underflow, saturating"
+			report "to_ads_fixed(real) underflow, saturating"
 					severity warning;
 			return ads_minimum_value;
 		else
@@ -189,11 +189,11 @@ package body ads_fixed is
 		end if;
 
 		return ret;
-	end function to_ads_sfixed;
+	end function to_ads_fixed;
 
-	-- take an ads_sfixed and make it into a signed
+	-- take an ads_fixed and make it into a signed
 	function to_signed (
-			arg: in ads_sfixed
+			arg: in ads_fixed
 		) return signed
 	is
 		variable ret: signed(arg'length - 1 downto 0);
@@ -204,10 +204,10 @@ package body ads_fixed is
 		return ret;
 	end function to_signed;
 
-	-- ads_sfixed + ads_sfixed
+	-- ads_fixed + ads_fixed
 	function "+" (
-			l, r:	in ads_sfixed
-		) return ads_sfixed
+			l, r:	in ads_fixed
+		) return ads_fixed
 	is
 		variable extended_l: signed(l'length-1 downto 0);
 		variable extended_r: signed(r'length-1 downto 0);
@@ -219,7 +219,7 @@ package body ads_fixed is
 		variable overflow, underflow: boolean;
 
 		variable result: signed(extended_l'range);
-		variable ret: ads_sfixed;
+		variable ret: ads_fixed;
 	begin
 
 		for i in l'range loop
@@ -254,10 +254,10 @@ package body ads_fixed is
 		return ret;
 	end function "+";
 
-	-- ads_sfixed - ads_sfixed
+	-- ads_fixed - ads_fixed
 	function "-" (
-			l, r:	in ads_sfixed
-		) return ads_sfixed
+			l, r:	in ads_fixed
+		) return ads_fixed
 	is
 		variable extended_l: signed(l'length-1 downto 0);
 		variable extended_r: signed(r'length-1 downto 0);
@@ -269,7 +269,7 @@ package body ads_fixed is
 		variable overflow, underflow: boolean;
 
 		variable result: signed(extended_l'range);
-		variable ret: ads_sfixed;
+		variable ret: ads_fixed;
 	begin
 
 		for i in l'range loop
@@ -303,13 +303,13 @@ package body ads_fixed is
 		return ret;
 	end function "-";
 
-	-- -ads_sfixed
+	-- -ads_fixed
 	function "-" (
-			r:	in ads_sfixed
-		) return ads_sfixed
+			r:	in ads_fixed
+		) return ads_fixed
 	is
 		variable cbit: std_logic := '1';
-		variable ret: ads_sfixed;
+		variable ret: ads_fixed;
 	begin
 		for i in r'low to r'high loop
 			ret(i) := (not r(i)) xor cbit;
@@ -318,14 +318,14 @@ package body ads_fixed is
 		return ret;
 	end function "-";
 
-	-- ads_sfixed * ads_sfixed
+	-- ads_fixed * ads_fixed
 	function "*" (
-			l, r: in ads_sfixed
-		) return ads_sfixed
+			l, r: in ads_fixed
+		) return ads_fixed
 	is
 		variable extended_l, extended_r: signed(l'length-1 downto 0);
 		variable extended_result: signed(2*l'length-1 downto 0);
-		variable ret: ads_sfixed := (others => '0');
+		variable ret: ads_fixed := (others => '0');
 		variable result_msb: std_logic;
 		variable l_msb, r_msb: std_logic;
 		variable overflow, underflow: boolean;
@@ -356,10 +356,10 @@ package body ads_fixed is
 
 		if overflow then
 			report "saturating multiplication overflow" severity warning;
-			return to_ads_sfixed(maximum_value);
+			return to_ads_fixed(maximum_value);
 		elsif underflow then
 			report "saturating multiplication underflow" severity warning;
-			return to_ads_sfixed(minimum_value);
+			return to_ads_fixed(minimum_value);
 		end if;
 
 		for i in ret'range loop
@@ -371,12 +371,12 @@ package body ads_fixed is
 	end function "*";
 
 
-	-- ads_sfixed / ads_sfixed
+	-- ads_fixed / ads_fixed
 	function "/" (
-			l, r: in ads_sfixed
-		) return ads_sfixed
+			l, r: in ads_fixed
+		) return ads_fixed
 	is
-		variable ret: ads_sfixed;
+		variable ret: ads_fixed;
 		variable l_s: signed(l'length+lsb-1 downto 0);
 		variable r_s: signed(l'length+lsb-1 downto 0);
 		variable ret_s: signed(l'length+lsb-1 downto 0);
@@ -394,9 +394,9 @@ package body ads_fixed is
 		return ret;
 	end function "/";
 
-	-- ads_sfixed > ads_sfixed
+	-- ads_fixed > ads_fixed
 	function ">" (
-			l, r: in ads_sfixed
+			l, r: in ads_fixed
 		) return boolean
 	is
 		variable lhs: signed(l'length-1 downto 0);

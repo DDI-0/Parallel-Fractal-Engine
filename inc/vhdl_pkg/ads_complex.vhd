@@ -3,7 +3,7 @@
 library ads;
 use ads.ads_fixed.all;
 
-package ads_complex_pkg is
+package ads_complex is
 	-- complex number in rectangular form
 	type ads_complex is record
 		re: ads_fixed;
@@ -43,12 +43,12 @@ package ads_complex_pkg is
 		) return ads_fixed;
 
 	-- constants
-	constant complex_zero: ads_complex :=
-					ads_cmplx(to_ads_fixed(0), to_ads_fixed(0));
+	  constant complex_zero : ads_complex; 
 
-end package ads_complex_pkg;
 
-package body ads_complex_pkg is
+end package ads_complex;
+
+package body ads_complex is
 
     -- constructor
     function ads_cmplx (
@@ -113,5 +113,8 @@ package body ads_complex_pkg is
     begin
         return (arg.re * arg.re) + (arg.im * arg.im);
     end function abs2;
+	 
+	 constant complex_zero : ads_complex :=
+		ads_cmplx(to_ads_fixed(0), to_ads_fixed(0));
 
-end package body ads_complex_pkg;
+end package body ads_complex;
