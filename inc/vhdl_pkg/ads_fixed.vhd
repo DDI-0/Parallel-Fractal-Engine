@@ -5,9 +5,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 package ads_fixed is
-	-- replace here with number of bits needed for integer part
 	constant msb: integer := 14;
-	-- replace here with number of bits needed for fractional part
 	constant lsb: integer := 18;
 
 
