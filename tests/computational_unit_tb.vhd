@@ -23,11 +23,9 @@ architecture sim of computational_unit_tb is
     signal max_iter   : unsigned(ITER_WIDTH-1 downto 0) := (others => '0');
     signal iter_count : unsigned(ITER_WIDTH-1 downto 0);
 
-    -- Clock period
     constant CLK_PERIOD : time := 10 ns;
 
 begin
-    -- DUT
     dut: entity work.computational_unit
         generic map (
             ITER_WIDTH => ITER_WIDTH,
