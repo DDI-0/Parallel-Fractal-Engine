@@ -63,7 +63,7 @@ package vga_controller is
 
     constant vga_res_1920x1080:     vga_timing  := vga_res_data(0);
     constant vga_res_640x480:       vga_timing  := vga_res_data(1);
-    constant vga_res_default:       vga_timing  := vga_res_640x480;
+    constant vga_res_default:       vga_timing  := vga_res_1920x1080;
 
     function x_visible (
         point:   in coordinate;
@@ -130,12 +130,14 @@ package body vga_controller is
     begin 
         if timing = horizontal then
             sync_data := vga_res.horizontal;
+				coord		 := point.x;
         else 
             sync_data := vga_res.vertical;
+				coord		 := point.y;
         end if;
 
-        if coord >= (sync_data.front_porch + sync_data.active_pixel) and 
-           coord < (sync_data.active_pixel + sync_data.sync_width + sync_data.front_porch)
+        if coord >= (sync_data.active_pixel + sync_data.front_porch) and 
+           coord < (sync_data.active_pixel + sync_data.front_porch + sync_data.sync_width)
             then if vga_res.sync_polarity = active_high then
                 ret := '1';
             else 
@@ -200,6 +202,7 @@ package body vga_controller is
                   ret.y := 0;
               end if;
           end if;
+			 return ret;
     end function next_coordinate;
 
     function horizontal_sync (
