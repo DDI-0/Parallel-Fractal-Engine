@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <uistd.h>
+#include <unistd.h>
 #include <fcntl.h>
 #include <sys/mman.h>
 #include <stdint.h>
@@ -10,7 +10,7 @@
 
 #define HW_REGS_BASE (ALT_STM_OFST)
 #define HW_REGS_SPAN (0x04000000)
-#define HW_REGS_MASK( HW_REGS_SPAN -1)
+#define HW_REGS_MASK( HW_REGS_SPAN - 1)
 
 // memory mapped register offsets
 #define REG_CONTROL_OFST    0x00
@@ -43,7 +43,7 @@ int main() {
     void *seed_imag_reg;
     void *status_reg;
 
-    if ((fd = open("/dev/mem", (0_RDWR | 0_SYNC))) == -1) {
+    if ((fd = open("/dev/mem", (O_RDWR | O_SYNC))) == -1) {
         printf("ERROR: could not open");
         return 1;
     }
@@ -62,16 +62,16 @@ int main() {
     status_reg      = virtual_base + REG_STATUS_OFST;
 
     printf("Starting Mandelbort\n");
-    *(uint32_t *)control_reg = CONTROL_START_MASK;
+    *(uint32_t *)control_reg = CONTROL_START;
 
-    while (!(*(uint32_t *)status_reg & STATUS_COMPLETE_MASK));
+    while (!(*(uint32_t *)status_reg & STATUS_DONE));
 
-    printf("Mandelbort complete\n");
+    printf("Mandelbrot complete\n");
 
     printf("Starting Julia with seed -0.7 + 0.6i\n");
 
     *(float *)seed_real_reg = -0.7f;
-    *(float *)seed_imag_reg = 0.6;
+    *(float *)seed_imag_reg = 0.6f;
 
     complex_seed animation_seeds[] = {
         {-0.6 , 0.6},
@@ -85,14 +85,14 @@ int main() {
 
     int num_seeds = sizeof(animation_seeds) / sizeof(complex_seed);
 
-    for (int i = 0; < num_seeds; i++) {        
-        printf("animating frame %d with sed (%.1f, %.1f)", i + 1, animation_seeds[i].real, animation_seeds[i].imag);
+    for (int i = 0; i < num_seeds; i++) {        
+        printf("animating frame %d with seed (%.1f, %.1f)", i + 1, animation_seeds[i].real, animation_seeds[i].imag);
 
         // write the seed for the current frame 
         *(float *)seed_real_reg = animation_seeds[i].real;
         *(float *)seed_imag_reg = animation_seeds[i].imag;
 
-        // sart the frame generation
+        // start the frame generation
         *(uint32_t *)control_reg = CONTROL_MODE | CONTROL_ANIMATE | CONTROL_START;
 
         while (!(*(uint32_t *)status_reg & STATUS_DONE));
