@@ -17,6 +17,8 @@ entity computational_unit is
         start      : in std_logic;
         c_re       : in ads_fixed;
         c_im       : in ads_fixed;
+		  seed_re    : in ads_fixed;
+		  seed_im    : in ads_fixed
         z_im       : in ads_fixed;
         z_re       : in ads_fixed;
         max_iter   : in unsigned(ITER_WIDTH-1 downto 0);
@@ -58,14 +60,19 @@ begin
             case state is
                 when IDLE =>
                     if start = '1' then
+							if mode = '0' then -- Mandelbrot mode
                         c <= (re => c_re, im => c_im);
-                        z <= (re => z_re, im => z_im);
+                        z <= complex_zero;
+							else
+								c <= (re => seed_re, im => seed_im);
+								z <= (re = z_re, im => z_im);
+							end if;
                         iter  <= (others => '0');
                         state <= RUN;
                     end if;
 
                 when RUN =>
-                    if (abs2(z) > THRESHOLD) or (iter = max_iter) then
+                    if (abs2(z) > THRESHOLD) or (iter >= max_iter) then
                         done_i <= '1';
                         state  <= IDLE;
                     else
