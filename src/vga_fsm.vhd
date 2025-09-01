@@ -24,20 +24,22 @@ architecture fsm of vga_fsm is
 
 begin
     
-    timing : process(vga_clk, rst_n)
+    timing : process(vga_clk)
     begin
+		if rising_edge(vga_clk) then
         if rst_n = '0' then 
             current_point <= make_coordinate(0,0);
             point_valid   <= false;
-            h_sync        <= '0';
-            v_sync        <= '0';
-        elsif rising_edge(vga_clk) then
+            h_sync        <= '1';
+            v_sync        <= '1';
+        else
             current_point <= next_coordinate(current_point, vga_res);
             point         <= current_point;
             point_valid   <= point_visible(current_point, vga_res);
             h_sync        <= horizontal_sync(current_point, vga_res);
             v_sync        <= vertical_sync(current_point, vga_res);
         end if;
+		end if;
     end process;
 end architecture fsm;
 
