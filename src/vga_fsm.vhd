@@ -6,41 +6,39 @@ use vga.vga_controller.all;
 
 entity vga_fsm is
     generic (
-        vga_res:    vga_timing := vga_res_default
+        vga_res: vga_timing := vga_res_640x480
     );
     port (
-        vga_clk             : in  std_logic;
-        rst_n               : in  std_logic;
-        point               : out coordinate;
-        point_valid         : out boolean;
-        h_sync              : out std_logic;
-        v_sync              : out std_logic
+        vga_clk    : in std_logic;   
+        rst_n      : in std_logic;
+        h_sync     : out std_logic;
+        v_sync      : out std_logic;
+        point_valid : out boolean; 
+        pixel_coord  : out coordinate
     );
 end entity vga_fsm;
 
-architecture fsm of vga_fsm is 
-    
-    signal current_point : coordinate := make_coordinate(0,0);
-
+architecture behavioral of vga_fsm is
+    signal current_point: coordinate;
 begin
-    
-    timing : process(vga_clk)
+    process (vga_clk)
     begin
-		if rising_edge(vga_clk) then
-        if rst_n = '0' then 
-            current_point <= make_coordinate(0,0);
-            point_valid   <= false;
-            h_sync        <= '1';
-            v_sync        <= '1';
-        else
-            current_point <= next_coordinate(current_point, vga_res);
-            point         <= current_point;
-            point_valid   <= point_visible(current_point, vga_res);
-            h_sync        <= horizontal_sync(current_point, vga_res);
-            v_sync        <= vertical_sync(current_point, vga_res);
+        if rising_edge(vga_clk) then
+            if rst_n = '0' then
+                current_point <= make_coordinate(0, 0);
+            else
+                current_point <= next_coordinate(current_point, vga_res);
+            end if;
         end if;
-		end if;
     end process;
-end architecture fsm;
 
+    -- Drive sync signals
+    h_sync <= horizontal_sync(current_point, vga_res);
+    v_sync <= vertical_sync(current_point, vga_res);
 
+    -- Boolean instead of std_logic
+    point_valid <= point_visible(current_point, vga_res);
+
+    -- Pixel coordinate output
+    pixel_coord <= current_point;
+end architecture behavioral;

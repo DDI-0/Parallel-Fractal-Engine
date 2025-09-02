@@ -3,84 +3,70 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library ads;
-use ads.ads_fixed.all;
-use ads.ads_complex.all;
+use ads.ads_fixed_pkg.all;
+use ads.ads_complex_pkg.all;
+
+library work;
+use work.util_pkg.all;
 
 entity computational_unit is
     generic (
-        ITER_WIDTH : positive := 8;
-        THRESHOLD  : ads_fixed := to_ads_fixed(4)
+        ITER_MAX : positive := 16;
+        THRESHOLD : ads_fixed := to_ads_fixed(4)
     );
     port (
-        clk        : in std_logic;
-        rst_n      : in std_logic;
-        start      : in std_logic;
-        c_re       : in ads_fixed;
-        c_im       : in ads_fixed;
-		  seed_re    : in ads_fixed;
-		  seed_im    : in ads_fixed
-        z_im       : in ads_fixed;
-        z_re       : in ads_fixed;
-        max_iter   : in unsigned(ITER_WIDTH-1 downto 0);
-
-        done       : out std_logic;
-        iter_count : out unsigned(ITER_WIDTH-1 downto 0)
+        clk : in std_logic;
+        rst_n : in std_logic;
+        mode : in std_logic; -- '0' for Mandelbrot, '1' for Julia
+        c_in : in ads_complex; -- For Mandelbrot: coordinate; For Julia: fixed parameter
+        z_in : in ads_complex; -- For Julia: coordinate; Ignored for Mandelbrot
+        enable : in std_logic; -- Enable signal to latch inputs
+        iter : out unsigned(num_bits(ITER_MAX) - 1 downto 0)
     );
 end entity computational_unit;
 
 architecture rtl of computational_unit is
-    
-    type state_t is (IDLE, RUN);
-    signal state  : state_t := IDLE;
-
-    signal c      : ads_complex := complex_zero;
-    signal z      : ads_complex := complex_zero;
+    constant ITER_MAX_CONST : unsigned(iter'range) := to_unsigned(ITER_MAX - 1, iter'length);
+    signal Iter_counter : unsigned(iter'range) := (others => '0');
+    signal c : ads_complex := complex_zero;
+    signal z : ads_complex := complex_zero;
     signal z_next : ads_complex;
-    signal iter   : unsigned(ITER_WIDTH-1 downto 0) := (others => '0');
-    signal done_i : std_logic := '0';
+    signal done_i : boolean;
+begin
+    z_next.re <= (z.re * z.re) - (z.im * z.im) + c.re;
+    z_next.im <= (z.re * z.im) + (z.im * z.re) + c.im;
+    iter <= Iter_counter;
 
-begin 
-
-    z_next      <= (z * z) + c;
-    done        <= done_i;
-    iter_count  <= iter;
-
-   process(clk)
-	begin
-    if rising_edge(clk) then
-        if rst_n = '0' then
-            state   <= IDLE;
-            iter    <= (others => '0');
-            done_i  <= '0';
-            z       <= complex_zero;
-            c       <= complex_zero;
-        else
-            done_i <= '0';       
-
-            case state is
-                when IDLE =>
-                    if start = '1' then
-							if mode = '0' then -- Mandelbrot mode
-                        c <= (re => c_re, im => c_im);
+    process(clk)
+    begin
+        if rising_edge(clk) then
+            if rst_n = '0' then
+                Iter_counter <= (others => '0');
+                done_i <= true;
+                z <= complex_zero;
+                c <= complex_zero;
+            elsif enable = '1' then
+                if done_i then
+                    -- Start a new computation
+                    c <= c_in;
+                    Iter_counter <= (others => '0');
+                    done_i <= false;
+                    -- Set initial z based on mode
+                    if mode = '0' then -- Mandelbrot
                         z <= complex_zero;
-							else
-								c <= (re => seed_re, im => seed_im);
-								z <= (re = z_re, im => z_im);
-							end if;
-                        iter  <= (others => '0');
-                        state <= RUN;
+                    else -- Julia
+                        z <= z_in;
                     end if;
-
-                when RUN =>
-                    if (abs2(z) > THRESHOLD) or (iter >= max_iter) then
-                        done_i <= '1';
-                        state  <= IDLE;
+                else
+                    -- Continue computation
+                    if (abs2(z) > THRESHOLD) or (Iter_counter = ITER_MAX_CONST) then
+                        done_i <= true;
                     else
-                        z    <= z_next;
-                        iter <= iter + 1;
+                        z <= z_next;
+                        Iter_counter <= Iter_counter + 1;
                     end if;
-            end case;
+                end if;
+            end if;
         end if;
-    end if;
- end process;
+    end process;
 end architecture rtl;

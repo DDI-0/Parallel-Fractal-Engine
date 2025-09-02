@@ -2,46 +2,69 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+library work;
 use work.color_data.all;
+use work.util_pkg.all;
 
 entity color_mapper is
+    generic (
+        MAX_ITER_VALUE : positive := 16
+    );
     port (
-        clk            	: in  std_logic;
-        rst_n          	: in  std_logic;              
-        iteration_count	: in  natural;                -- iteration result from fractal core
-        max_iteration  	: in  natural;                
-        palette       	: in  palette_index_type;     -- which palette to use
-        pixel_color    	: out rgb_color
+        color_clk : in std_logic;
+        rst_n : in std_logic;
+        iter_count : in unsigned(num_bits(MAX_ITER_VALUE)-1 downto 0);
+        palette_sel : in std_logic_vector(1 downto 0);
+        rgb_out : out rgb_color
     );
 end entity color_mapper;
 
 architecture rtl of color_mapper is
+    signal color_table 		 : color_table_type;
+    signal color_index 		 : color_index_type;
+    constant MAX_ITER_CONST : unsigned(iter_count'range) := to_unsigned(MAX_ITER_VALUE - 1, iter_count'length);
 
-    constant color_count 	: natural := color_table_ocean'length; -- range of color(0-7)
-    signal pixel_color_reg : rgb_color;  -- store the computed pixel color 
-	 
 begin
-
-    process(clk)
-        variable index : natural; 
-        variable local_palette : color_table_type;
+    -- Select the color palette based on palette_sel
+    process(palette_sel)
     begin
-        if rising_edge(clk) then
-            if rst_n = '0' then
-                pixel_color_reg <= color_black;
-            else
-                local_palette := get_palette(palette);
+        case palette_sel is
+            when "00" =>
+                color_table <= get_palette(0); -- Ocean palette
+            when "01" =>
+                color_table <= get_palette(1); -- Sunset palette
+            when "10" =>
+                color_table <= get_palette(2); -- Mysterious palette
+            when others =>
+                color_table <= get_palette(0); -- Default to ocean palette
+        end case;
+    end process;
 
-                if iteration_count >= max_iteration then
-                    pixel_color_reg <= color_black;
+    -- Map iteration count to color and register the output
+    process(color_clk)
+        variable index_unsigned : unsigned(2 downto 0);
+    begin
+        if rising_edge(color_clk) then
+            if rst_n = '0' then
+                rgb_out <= color_black; -- On reset, output black
+            else
+                -- Determine the color index based on the iteration count
+                if iter_count = MAX_ITER_CONST then
+                    -- If inside the set, use index 0 (black)
+                    color_index <= 0;
                 else
-                    index := (iteration_count mod (color_count - 1)) + 1;  -- map iteration count to a color index within the palette
-                    pixel_color_reg <= get_color(index, local_palette);
+                    -- Map iteration count to color index [1..7] for smooth color bands
+                    index_unsigned := iter_count(2 downto 0);
+                    if index_unsigned = "000" then
+                        -- Avoid index 0 (reserved for inside the set)
+                        color_index <= color_table_ocean'high;
+                    else
+                        color_index <= to_integer(index_unsigned);
+                    end if;
                 end if;
+                -- Look up the RGB color from the selected palette
+                rgb_out <= get_color(color_index, color_table);
             end if;
         end if;
     end process;
-
-    pixel_color <= pixel_color_reg;
-
 end architecture rtl;

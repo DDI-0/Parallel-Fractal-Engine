@@ -1,6 +1,6 @@
 package color_data is
 
-    subtype color_channel_type is natural range 0 to 15;
+    subtype color_channel_type is natural range 0 to 255;
 
     type rgb_color is record
         red   : color_channel_type;
@@ -8,47 +8,48 @@ package color_data is
         blue  : color_channel_type;
     end record rgb_color;
 
-    constant color_black : rgb_color := ( red => 0,  green => 0,  blue => 0 );
-    constant color_red   : rgb_color := ( red => 15, green => 0,  blue => 0 );
-    constant color_green : rgb_color := ( red => 0,  green => 15, blue => 0 );
-    constant color_blue  : rgb_color := ( red => 0,  green => 0, blue => 15 );
+    -- Basic colors updated to the 8-bit range
+    constant color_black : rgb_color := ( red => 0,   green => 0,   blue => 0 );
+    constant color_red   : rgb_color := ( red => 255, green => 0,   blue => 0 );
+    constant color_green : rgb_color := ( red => 0,   green => 255, blue => 0 );
+    constant color_blue  : rgb_color := ( red => 0,   green => 0,   blue => 255 );
 
     type color_table_type is array(0 to 7) of rgb_color;
 
-    -- Ocean palette
+    -- Ocean palette, scaled to the 0-255 range
     constant color_table_ocean : color_table_type := (
-        0 => ( red => 0,  green => 0,  blue => 0 ),    -- inside (black)
-        1 => ( red => 0,  green => 0,  blue => 8 ),
-        2 => ( red => 0,  green => 4,  blue => 12 ),
-        3 => ( red => 0,  green => 8,  blue => 15 ),
-        4 => ( red => 4,  green => 12, blue => 15 ),
-        5 => ( red => 8,  green => 15, blue => 15 ),
-        6 => ( red => 12, green => 15, blue => 12 ),
-        7 => ( red => 15, green => 15, blue => 8 )
+        0 => ( red => 0,   green => 0,   blue => 0 ),    -- black
+        1 => ( red => 0,   green => 0,   blue => 136 ),
+        2 => ( red => 0,   green => 68,  blue => 204 ),
+        3 => ( red => 0,   green => 136, blue => 255 ),
+        4 => ( red => 68,  green => 204, blue => 255 ),
+        5 => ( red => 136, green => 255, blue => 255 ),
+        6 => ( red => 204, green => 255, blue => 204 ),
+        7 => ( red => 255, green => 255, blue => 136 )
     );
 
-    -- Sunset palette
+    -- Sunset palette, scaled to the 0-255 range
     constant color_table_sunset : color_table_type := (
-        0 => ( red => 0,  green => 0,  blue => 0 ),
-        1 => ( red => 4,  green => 0,  blue => 0 ),
-        2 => ( red => 8,  green => 2,  blue => 0 ),
-        3 => ( red => 12, green => 6,  blue => 0 ),
-        4 => ( red => 15, green => 10, blue => 0 ),
-        5 => ( red => 15, green => 15, blue => 4 ),
-        6 => ( red => 15, green => 15, blue => 8 ),
-        7 => ( red => 15, green => 15, blue => 15 )
+        0 => ( red => 0,   green => 0,   blue => 0 ),
+        1 => ( red => 68,  green => 0,   blue => 0 ),
+        2 => ( red => 136, green => 34,  blue => 0 ),
+        3 => ( red => 204, green => 102, blue => 0 ),
+        4 => ( red => 255, green => 170, blue => 0 ),
+        5 => ( red => 255, green => 255, blue => 68 ),
+        6 => ( red => 255, green => 255, blue => 136 ),
+        7 => ( red => 255, green => 255, blue => 255 )   -- white
     );
 
-    -- Mysterious palette
+    -- Mysterious palette, scaled to the 0-255 range
     constant color_table_mysterious : color_table_type := (
-        0 => ( red => 0,  green => 0,  blue => 0 ),    
-        1 => ( red => 2,  green => 0,  blue => 4 ),    
-        2 => ( red => 4,  green => 0,  blue => 8 ),    
-        3 => ( red => 6,  green => 0,  blue => 12 ),   
-        4 => ( red => 4,  green => 4,  blue => 15 ),   
-        5 => ( red => 0,  green => 6,  blue => 12 ),   
-        6 => ( red => 0,  green => 10, blue => 8 ),    
-        7 => ( red => 4,  green => 15, blue => 12 )    
+        0 => ( red => 0,   green => 0,   blue => 0 ),
+        1 => ( red => 34,  green => 0,   blue => 68 ),
+        2 => ( red => 68,  green => 0,   blue => 136 ),
+        3 => ( red => 102, green => 0,   blue => 204 ),
+        4 => ( red => 68,  green => 68,  blue => 255 ),
+        5 => ( red => 0,   green => 102, blue => 204 ),
+        6 => ( red => 0,   green => 170, blue => 136 ),
+        7 => ( red => 68,  green => 255, blue => 204 )
     );
 
     -- Palette table: collection of color tables
@@ -63,7 +64,6 @@ package color_data is
     subtype palette_index_type is natural range color_palette_table'range;
     subtype color_index_type   is natural range color_table_ocean'range;
 
-    
     function get_color (
         color_index   : in color_index_type;
         color_palette : in color_table_type
@@ -77,6 +77,9 @@ end package color_data;
 
 
 package body color_data is
+
+    -- No changes are needed in the package body, as the functions
+    -- automatically adapt to the updated types defined in the header.
 
     function get_color (
         color_index   : in color_index_type;
