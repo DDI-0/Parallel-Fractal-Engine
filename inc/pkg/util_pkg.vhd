@@ -1,5 +1,6 @@
 library ieee;
 use ieee.math_real.all;
+-- Final version
 
 package util_pkg is
     function num_bits (val: in positive) return positive;

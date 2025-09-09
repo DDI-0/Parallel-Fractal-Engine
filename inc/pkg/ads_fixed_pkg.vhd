@@ -1,4 +1,5 @@
 ---- this file is part of the ADS library
+-- Final version
 
 library ieee;
 use ieee.std_logic_1164.all;

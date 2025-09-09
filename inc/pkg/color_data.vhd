@@ -1,3 +1,6 @@
+-- Final version
+
+
 package color_data is
 
     subtype color_channel_type is natural range 0 to 255;
