@@ -9,12 +9,14 @@ entity vga_fsm is
         vga_res: vga_timing := vga_res_640x480
     );
     port (
-        vga_clk    : in std_logic;   
-        rst_n      : in std_logic;
-        h_sync     : out std_logic;
-        v_sync      : out std_logic;
-        point_valid : out boolean; 
-        pixel_coord  : out coordinate
+        vga_clk      : in std_logic;   
+        rst_n        : in std_logic;
+        h_sync       : out std_logic;
+        v_sync       : out std_logic;
+        point_valid  : out boolean; 
+        pixel_coord  : out coordinate;
+        VGA_BLANK_N  : out std_logic;
+        VGA_SYNC_N   : out std_logic
     );
 end entity vga_fsm;
 
@@ -32,13 +34,13 @@ begin
         end if;
     end process;
 
-    -- Drive sync signals
     h_sync <= horizontal_sync(current_point, vga_res);
     v_sync <= vertical_sync(current_point, vga_res);
 
-    -- Boolean instead of std_logic
     point_valid <= point_visible(current_point, vga_res);
 
-    -- Pixel coordinate output
     pixel_coord <= current_point;
+
+    VGA_BLANK_N <= '1' when point_visible(current_point, vga_res) else '0';
+    VGA_SYNC_N <= '1';
 end architecture behavioral;

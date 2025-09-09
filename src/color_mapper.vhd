@@ -8,7 +8,7 @@ use work.util_pkg.all;
 
 entity color_mapper is
     generic (
-        MAX_ITER_VALUE : positive := 16
+        MAX_ITER_VALUE : positive := 32
     );
     port (
         color_clk : in std_logic;
