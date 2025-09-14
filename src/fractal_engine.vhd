@@ -56,6 +56,7 @@ begin
         port map (
             coord_clk    => clk,
             rst_n        => rst_n,
+            mode         => mode,  
             pixel_coord  => pixel_coord,
             c_out        => mapped_c
         );

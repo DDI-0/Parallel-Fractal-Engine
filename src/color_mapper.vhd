@@ -34,7 +34,7 @@ begin
             when "01" =>
                 color_table <= get_palette(1); -- Sunset palette
             when "10" =>
-                color_table <= get_palette(2); -- Mysterious palette
+                color_table <= get_palette(2); -- Purple/Blue palette
             when others =>
                 color_table <= get_palette(0); -- Default to ocean palette
         end case;
